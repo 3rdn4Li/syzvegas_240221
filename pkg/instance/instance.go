@@ -387,7 +387,7 @@ func (inst *inst) testInstance() error {
 	}
 
 	cmd := OldFuzzerCmd(fuzzerBin, executorBin, targets.TestOS, inst.cfg.TargetOS, inst.cfg.TargetArch, fwdAddr,
-		inst.cfg.Sandbox, inst.cfg.SandboxArg, 0, inst.cfg.Cover, true, inst.optionalFlags, inst.cfg.Timeouts.Slowdown)
+		inst.cfg.Sandbox, inst.cfg.SandboxArg, 0, inst.cfg.Cover, true, inst.optionalFlags, inst.cfg.Timeouts.Slowdown, "KCOV", nil)
 	outc, errc, err := inst.vm.Run(10*time.Minute*inst.cfg.Timeouts.Scale, nil, cmd)
 	if err != nil {
 		return fmt.Errorf("failed to run binary in VM: %w", err)
@@ -464,20 +464,22 @@ type OptionalFuzzerArgs struct {
 }
 
 type FuzzerCmdArgs struct {
-	Fuzzer    string
-	Executor  string
-	Name      string
-	OS        string
-	Arch      string
-	FwdAddr   string
-	Sandbox   string
-	Procs     int
-	Verbosity int
-	Cover     bool
-	Debug     bool
-	Test      bool
-	Runtest   bool
-	Optional  *OptionalFuzzerArgs
+	Fuzzer        string
+	Executor      string
+	Name          string
+	OS            string
+	Arch          string
+	FwdAddr       string
+	Sandbox       string
+	Procs         int
+	Verbosity     int
+	Cover         bool
+	Debug         bool
+	Test          bool
+	Runtest       bool
+	Optional      *OptionalFuzzerArgs
+	Feedback      string
+	Fuzzer_config map[string]interface{}
 }
 
 func FuzzerCmd(args *FuzzerCmdArgs) string {
@@ -507,14 +509,25 @@ func FuzzerCmd(args *FuzzerCmdArgs) string {
 		}
 		optionalArg = " " + tool.OptionalFlags(flags)
 	}
-	return fmt.Sprintf("%v -executor=%v -name=%v -arch=%v%v -manager=%v -sandbox=%v"+
-		" -procs=%v -cover=%v -debug=%v -test=%v%v%v%v",
+	ret := fmt.Sprintf("%v -executor=%v -name=%v -arch=%v%v -manager=%v -sandbox=%v"+
+		" -procs=%v -cover=%v -debug=%v -test=%v%v%v%v -feedback=%v",
 		args.Fuzzer, args.Executor, args.Name, args.Arch, osArg, args.FwdAddr, args.Sandbox,
-		args.Procs, args.Cover, args.Debug, args.Test, runtestArg, verbosityArg, optionalArg)
+		args.Procs, args.Cover, args.Debug, args.Test, runtestArg, verbosityArg, optionalArg, args.Feedback)
+	for k, v := range args.Fuzzer_config {
+		_v, ok := v.(float64)
+		if ok {
+			if _v > 1000000.0 {
+				ret += fmt.Sprintf(" -fuzzerconfig_%s=%d", k, int64(_v))
+				continue
+			}
+		}
+		ret += fmt.Sprintf(" -fuzzerconfig_%s=%v", k, v)
+	}
+	return ret
 }
 
 func OldFuzzerCmd(fuzzer, executor, name, OS, arch, fwdAddr, sandbox string, sandboxArg, procs int,
-	cover, test, optionalFlags bool, slowdown int) string {
+	cover, test, optionalFlags bool, slowdown int, feedback string, fuzzer_config map[string]interface{}) string {
 	var optional *OptionalFuzzerArgs
 	if optionalFlags {
 		optional = &OptionalFuzzerArgs{Slowdown: slowdown, SandboxArg: sandboxArg}
@@ -522,7 +535,7 @@ func OldFuzzerCmd(fuzzer, executor, name, OS, arch, fwdAddr, sandbox string, san
 	return FuzzerCmd(&FuzzerCmdArgs{Fuzzer: fuzzer, Executor: executor, Name: name,
 		OS: OS, Arch: arch, FwdAddr: fwdAddr, Sandbox: sandbox,
 		Procs: procs, Verbosity: 0, Cover: cover, Debug: false, Test: test, Runtest: false,
-		Optional: optional})
+		Optional: optional, Feedback: feedback, Fuzzer_config: fuzzer_config})
 }
 
 func ExecprogCmd(execprog, executor, OS, arch, sandbox string, sandboxArg int, repeat, threaded, collide bool,

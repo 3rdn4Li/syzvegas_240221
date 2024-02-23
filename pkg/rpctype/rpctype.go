@@ -8,6 +8,8 @@ package rpctype
 import (
 	"math"
 
+	"github.com/google/syzkaller/pkg/glc"
+	"github.com/google/syzkaller/pkg/hash"
 	"github.com/google/syzkaller/pkg/host"
 	"github.com/google/syzkaller/pkg/ipc"
 	"github.com/google/syzkaller/pkg/signal"
@@ -20,6 +22,29 @@ type Input struct {
 	Cover    []uint32
 	CallID   int // seq number of call in the prog to which the item is related (-1 for extra)
 	RawCover []uint32
+	glc.CorpusGLC
+}
+type RPCTriage struct {
+	Sig        hash.Sig
+	CallIndex  int
+	Prog       []byte
+	Flags      int
+	Info       ipc.CallInfo
+	Source     int
+	SourceCost float64
+}
+
+type TriageArgs struct {
+	Name string
+	RPCTriage
+}
+
+type RPCMABStatus struct {
+	Round      int
+	Exp31Round int
+	MABGLC     glc.MABGLC
+	CorpusGLC  map[hash.Sig]glc.CorpusGLC
+	TriageInfo map[hash.Sig]*glc.TriageInfo
 }
 
 type Candidate struct {
@@ -75,12 +100,19 @@ type PollArgs struct {
 	NeedCandidates bool
 	MaxSignal      signal.Serial
 	Stats          map[string]uint64
+	NeedTriages       bool
+	Triages           map[hash.Sig]int
+	TriagesUnfinished []RPCTriage
+	SmashesFinished   []hash.Sig
+	RPCMABStatus
 }
 
 type PollRes struct {
 	Candidates []Candidate
 	NewInputs  []Input
+	Triages    []RPCTriage
 	MaxSignal  signal.Serial
+	RPCMABStatus
 }
 
 type RunnerConnectArgs struct {

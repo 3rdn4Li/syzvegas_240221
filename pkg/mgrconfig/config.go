@@ -194,6 +194,9 @@ type Config struct {
 	// Parameters for concrete types are in Config type in vm/TYPE/TYPE.go, e.g. vm/qemu/qemu.go.
 	VM json.RawMessage `json:"vm"`
 
+	Feedback     string          `json:"feedback"`
+	FuzzerConfig json.RawMessage `json:"fuzzer_config"`
+
 	// Asset storage configuration. There can be specified the upload location and crash assets
 	// to upload.
 	// A sample config:

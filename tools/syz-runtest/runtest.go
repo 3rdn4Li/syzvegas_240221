@@ -190,6 +190,8 @@ func (mgr *Manager) boot(name string, index int) (*report.Report, error) {
 			Slowdown:   mgr.cfg.Timeouts.Slowdown,
 			SandboxArg: mgr.cfg.SandboxArg,
 		},
+		Feedback: "KCOV",
+		Fuzzer_config: nil,
 	}
 	cmd := instance.FuzzerCmd(args)
 	outc, errc, err := inst.Run(time.Hour, mgr.vmStop, cmd)

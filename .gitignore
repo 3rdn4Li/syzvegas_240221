@@ -12,6 +12,7 @@ workdir*
 
 linux/
 image/
+*.cfg
 
 bin/
 dashboard/app/config_prod.go

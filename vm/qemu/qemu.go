@@ -512,9 +512,9 @@ func (inst *instance) boot() error {
 			"-device", "isa-applesmc,osk="+inst.cfg.AppleSmcOsk,
 		)
 	}
-	if inst.debug {
+	//if inst.debug { // Output log even with debug
 		log.Logf(0, "running command: %v %#v", inst.cfg.Qemu, args)
-	}
+	//}
 	inst.args = args
 	qemu := osutil.Command(inst.cfg.Qemu, args...)
 	qemu.Stdout = inst.wpipe

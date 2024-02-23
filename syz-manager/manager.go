@@ -162,6 +162,7 @@ func main() {
 		// This lets better distinguish logs of individual syz-manager instances.
 		log.SetName(cfg.Name)
 	}
+	fmt.Fprintf(os.Stdout, "<<<%v>>>\n", time.Now().UnixNano())
 	RunManager(cfg)
 }
 
@@ -256,6 +257,7 @@ func RunManager(cfg *mgrconfig.Config) {
 			numReproducing := atomic.LoadUint32(&mgr.numReproducing)
 			numFuzzing := atomic.LoadUint32(&mgr.numFuzzing)
 
+			fmt.Fprintf(os.Stdout, "<<<%v>>>\n", time.Now().UnixNano())
 			log.Logf(0, "VMs %v, executed %v, cover %v, signal %v/%v, crashes %v, repro %v, triageQLen %v",
 				numFuzzing, executed, corpusCover, corpusSignal, maxSignal, crashes, numReproducing, triageQLen)
 		}
@@ -826,6 +828,10 @@ func (mgr *Manager) runInstanceInner(index int, instanceName string) (*report.Re
 	start := time.Now()
 	atomic.AddUint32(&mgr.numFuzzing, 1)
 	defer atomic.AddUint32(&mgr.numFuzzing, ^uint32(0))
+	fuzzerConfig := make(map[string]interface{})
+	if err := json.Unmarshal(mgr.cfg.FuzzerConfig, &fuzzerConfig); err != nil {
+		fmt.Printf("failed to parse fuzzer config. Using default.\n%v", err)
+	}
 
 	args := &instance.FuzzerCmdArgs{
 		Fuzzer:    fuzzerBin,
@@ -848,6 +854,8 @@ func (mgr *Manager) runInstanceInner(index int, instanceName string) (*report.Re
 			PprofPort:     inst.PprofPort(),
 			ResetAccState: mgr.cfg.Experimental.ResetAccState,
 		},
+		Feedback:      mgr.cfg.Feedback,
+		Fuzzer_config: fuzzerConfig,
 	}
 	cmd := instance.FuzzerCmd(args)
 	outc, errc, err := inst.Run(mgr.cfg.Timeouts.VMRunningTime, mgr.vmStop, cmd)
