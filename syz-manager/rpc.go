@@ -454,7 +454,7 @@ func (serv *RPCServer) Poll(a *rpctype.PollArgs, r *rpctype.PollRes) error {
 			// Send MAB status as well
 			sig := hash.Hash(f.inputs[last].Prog)
 			if r.CorpusGLC == nil {
-				log.Logf(0, "- WTF. nil map detected. Creating.\n")
+				//log.Logf(0, "- WTF. nil map detected. Creating.\n") //seems no problem, should be true for the first time
 				r.CorpusGLC = make(map[hash.Sig]glc.CorpusGLC)
 			}
 			if v, ok := serv.CorpusGLC[sig]; ok {

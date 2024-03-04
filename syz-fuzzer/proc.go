@@ -143,12 +143,11 @@ func (proc *Proc) DoGenerate() ExecResult {
 	p := proc.fuzzer.target.Generate(proc.rnd, prog.RecommendedCalls, ct)
 	proc.fuzzer.writeLog("%s", "# Generate\n")
 	proc.fuzzer.logProgram(p)
-	_, r := proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatSmash)//should the parameter resetState be true?
+	_, r := proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatGenerate)//should the parameter resetState be true?
 	ret.gainRaw += r.gainRaw
 	ret.calls += r.calls
 	ret.time += r.time
 	ret.timeTotal += r.timeTotal
-	// }
 	return ret
 }
 
@@ -354,6 +353,7 @@ func (proc *Proc) loop() {
 		if item != nil {
 			itemType, r := proc.ProcessItem(item)
 			if itemType == 1 && proc.fuzzer.fuzzerConfig.MABSeedSelection != "N/A" {
+				log.Logf(1, "MABSeedSelection get reward from smash: %+v", r)
 				proc.fuzzer.MABUpdateWeight(1, r, []float64{1.0, 1.0, 1.0}, 1.0)
 			}
 			proc.fuzzer.writeLog("- Work Type: %v, Result: %+v\n", itemType, r)
@@ -386,7 +386,7 @@ func (proc *Proc) loop() {
 			proc.fuzzer.logProgram(p)
 			p.Mutate(proc.rnd, prog.RecommendedCalls, ct, proc.fuzzer.noMutate, fuzzerSnapshot.corpus)
 			proc.fuzzer.logProgram(p)
-			_, r:=	proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatGenerate)
+			_, r:=	proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatFuzz)
 			r.pidx = pidx
 			r.timeTotal = float64(time.Now().UnixNano()-ts0) / proc.fuzzer.fuzzerConfig.MABTimeUnit
 			if proc.fuzzer.fuzzerConfig.MABSeedSelection != "N/A" {

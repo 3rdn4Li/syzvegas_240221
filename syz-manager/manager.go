@@ -258,8 +258,12 @@ func RunManager(cfg *mgrconfig.Config) {
 			numFuzzing := atomic.LoadUint32(&mgr.numFuzzing)
 
 			fmt.Fprintf(os.Stdout, "<<<%v>>>\n", time.Now().UnixNano())
-			log.Logf(0, "VMs %v, executed %v, cover %v, signal %v/%v, crashes %v, repro %v, triageQLen %v",
-				numFuzzing, executed, corpusCover, corpusSignal, maxSignal, crashes, numReproducing, triageQLen)
+			log.Logf(0, "VMs %v, executed %v, cover %v, signal %v/%v, crashes %v, repro %v, triageQLen %v fuzzingtme %v",
+				numFuzzing, executed, corpusCover, corpusSignal, maxSignal, crashes, numReproducing, triageQLen, mgr.fuzzingTime)
+			for key, value := range mgr.stats.all() {
+				fmt.Printf("%s: %d ", key, value)
+			}
+			fmt.Println()
 		}
 	}()
 
