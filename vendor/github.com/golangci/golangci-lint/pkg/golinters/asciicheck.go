@@ -4,14 +4,16 @@ import (
 	"github.com/tdakkota/asciicheck"
 	"golang.org/x/tools/go/analysis"
 
-	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
+	"github.com/golangci/golangci-lint/pkg/goanalysis"
 )
 
 func NewAsciicheck() *goanalysis.Linter {
+	a := asciicheck.NewAnalyzer()
+
 	return goanalysis.NewLinter(
-		"asciicheck",
-		"Simple linter to check that your code does not contain non-ASCII identifiers",
-		[]*analysis.Analyzer{asciicheck.NewAnalyzer()},
+		a.Name,
+		a.Doc,
+		[]*analysis.Analyzer{a},
 		nil,
 	).WithLoadMode(goanalysis.LoadModeSyntax)
 }

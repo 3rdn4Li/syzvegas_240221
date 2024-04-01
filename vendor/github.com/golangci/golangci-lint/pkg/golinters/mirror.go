@@ -6,7 +6,7 @@ import (
 	"github.com/butuzov/mirror"
 	"golang.org/x/tools/go/analysis"
 
-	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
+	"github.com/golangci/golangci-lint/pkg/goanalysis"
 	"github.com/golangci/golangci-lint/pkg/lint/linter"
 	"github.com/golangci/golangci-lint/pkg/result"
 )
@@ -39,7 +39,7 @@ func NewMirror() *goanalysis.Linter {
 				Pos:        i.Start,
 			}
 
-			if len(i.InlineFix) > 0 {
+			if i.InlineFix != "" {
 				issue.Replacement = &result.Replacement{
 					Inline: &result.InlineFix{
 						StartCol:  i.Start.Column - 1,

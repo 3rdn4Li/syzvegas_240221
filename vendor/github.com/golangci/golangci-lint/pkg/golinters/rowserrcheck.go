@@ -5,7 +5,7 @@ import (
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/golangci/golangci-lint/pkg/config"
-	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
+	"github.com/golangci/golangci-lint/pkg/goanalysis"
 )
 
 func NewRowsErrCheck(settings *config.RowsErrCheckSettings) *goanalysis.Linter {
@@ -14,12 +14,12 @@ func NewRowsErrCheck(settings *config.RowsErrCheckSettings) *goanalysis.Linter {
 		pkgs = settings.Packages
 	}
 
-	analyzer := rowserr.NewAnalyzer(pkgs...)
+	a := rowserr.NewAnalyzer(pkgs...)
 
 	return goanalysis.NewLinter(
-		"rowserrcheck",
-		"checks whether Err of rows is checked successfully",
-		[]*analysis.Analyzer{analyzer},
+		a.Name,
+		"checks whether Rows.Err of rows is checked successfully",
+		[]*analysis.Analyzer{a},
 		nil,
 	).WithLoadMode(goanalysis.LoadModeTypesInfo)
 }

@@ -5,10 +5,8 @@ import (
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/golangci/golangci-lint/pkg/config"
-	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
+	"github.com/golangci/golangci-lint/pkg/goanalysis"
 )
-
-const wrapcheckName = "wrapcheck"
 
 func NewWrapcheck(settings *config.WrapcheckSettings) *goanalysis.Linter {
 	cfg := wrapcheck.NewDefaultConfig()
@@ -30,7 +28,7 @@ func NewWrapcheck(settings *config.WrapcheckSettings) *goanalysis.Linter {
 	a := wrapcheck.NewAnalyzer(cfg)
 
 	return goanalysis.NewLinter(
-		wrapcheckName,
+		a.Name,
 		a.Doc,
 		[]*analysis.Analyzer{a},
 		nil,

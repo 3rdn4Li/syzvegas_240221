@@ -4,14 +4,15 @@ import (
 	"github.com/moricho/tparallel"
 	"golang.org/x/tools/go/analysis"
 
-	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
+	"github.com/golangci/golangci-lint/pkg/goanalysis"
 )
 
 func NewTparallel() *goanalysis.Linter {
+	a := tparallel.Analyzer
 	return goanalysis.NewLinter(
-		"tparallel",
-		"tparallel detects inappropriate usage of t.Parallel() method in your Go test codes",
-		[]*analysis.Analyzer{tparallel.Analyzer},
+		a.Name,
+		a.Doc,
+		[]*analysis.Analyzer{a},
 		nil,
 	).WithLoadMode(goanalysis.LoadModeTypesInfo)
 }

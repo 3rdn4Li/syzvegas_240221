@@ -8,7 +8,7 @@ import (
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/packages"
 
-	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
+	"github.com/golangci/golangci-lint/pkg/goanalysis"
 	"github.com/golangci/golangci-lint/pkg/lint/linter"
 	"github.com/golangci/golangci-lint/pkg/result"
 )
@@ -45,7 +45,7 @@ func NewGoCheckSumType() *goanalysis.Linter {
 		`Run exhaustiveness checks on Go "sum types"`,
 		[]*analysis.Analyzer{analyzer},
 		nil,
-	).WithIssuesReporter(func(ctx *linter.Context) []goanalysis.Issue {
+	).WithIssuesReporter(func(_ *linter.Context) []goanalysis.Issue {
 		return resIssues
 	}).WithLoadMode(goanalysis.LoadModeTypesInfo)
 }

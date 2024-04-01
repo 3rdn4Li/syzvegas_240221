@@ -5,10 +5,10 @@ import (
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/golangci/golangci-lint/pkg/config"
-	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
+	"github.com/golangci/golangci-lint/pkg/goanalysis"
 )
 
-func NewErrChkJSONFuncName(cfg *config.ErrChkJSONSettings) *goanalysis.Linter {
+func NewErrChkJSON(cfg *config.ErrChkJSONSettings) *goanalysis.Linter {
 	a := errchkjson.NewAnalyzer()
 
 	cfgMap := map[string]map[string]any{}
@@ -23,10 +23,8 @@ func NewErrChkJSONFuncName(cfg *config.ErrChkJSONSettings) *goanalysis.Linter {
 	}
 
 	return goanalysis.NewLinter(
-		"errchkjson",
-		"Checks types passed to the json encoding functions. "+
-			"Reports unsupported types and optionally reports occasions, "+
-			"where the check for the returned error can be omitted.",
+		a.Name,
+		a.Doc,
 		[]*analysis.Analyzer{a},
 		cfgMap,
 	).WithLoadMode(goanalysis.LoadModeTypesInfo)

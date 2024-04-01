@@ -1,11 +1,11 @@
 package golinters
 
 import (
-	"go.tmz.dev/musttag"
+	"go-simpler.org/musttag"
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/golangci/golangci-lint/pkg/config"
-	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
+	"github.com/golangci/golangci-lint/pkg/goanalysis"
 )
 
 func NewMustTag(setting *config.MustTagSettings) *goanalysis.Linter {
