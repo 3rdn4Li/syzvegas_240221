@@ -139,6 +139,7 @@ func (serv *RPCServer) Connect(a *rpctype.ConnectArgs, r *rpctype.ConnectRes) er
 	r.CoverFilterBitmap = createCoverageBitmap(serv.cfg.SysTarget, instCoverFilter)
 	r.EnabledCalls = serv.cfg.Syscalls
 	r.NoMutateCalls = serv.cfg.NoMutateCalls
+	r.DisabledCallArgs = serv.cfg.DisabledCallArgs
 	r.GitRevision = prog.GitRevision
 	r.TargetRevision = serv.cfg.Target.Revision
 	if serv.mgr.rotateCorpus() && serv.rnd.Intn(5) == 0 {

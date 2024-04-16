@@ -167,6 +167,9 @@ type Config struct {
 	// List of syscalls to test (optional). For example:
 	//	"enable_syscalls": [ "mmap", "openat$ashmem", "ioctl$ASHMEM*" ]
 	EnabledSyscalls []string `json:"enable_syscalls,omitempty"`
+	// Map of syscalls to indexes of parameters that should not be mutated by the fuzzer (optional). For example:
+	//	"disable_syscall_args": { "mmap": [ 0, 1 ], "openat$ashmem": [ 1 ] }
+	DisabledSyscallArgs map[string][]int `json:"disable_syscall_args,omitempty"`
 	// List of system calls that should be treated as disabled (optional).
 	DisabledSyscalls []string `json:"disable_syscalls,omitempty"`
 	// List of syscalls that should not be mutated by the fuzzer (optional).

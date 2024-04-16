@@ -110,6 +110,7 @@ type ArgCtx struct {
 	Base   *PointerArg // Pointer to the base of the heap object containing this arg.
 	Offset uint64      // Offset of this arg from the base.
 	Stop   bool        // If set by the callback, subargs of this arg are not visited.
+	index int 	   // The index of the arg
 }
 
 func ForeachSubArg(arg Arg, f func(Arg, *ArgCtx)) {
@@ -119,11 +120,12 @@ func ForeachSubArg(arg Arg, f func(Arg, *ArgCtx)) {
 func ForeachArg(c *Call, f func(Arg, *ArgCtx)) {
 	ctx := &ArgCtx{}
 	if c.Ret != nil {
-		foreachArgImpl(c.Ret, ctx, f)
+		foreachArgImpl(c.Ret, ctx, f) //why do we collect the return value as arg? do we mutate it?
 	}
 	ctx.Parent = &c.Args
 	ctx.Fields = c.Meta.Args
-	for _, arg := range c.Args {
+	for i, arg := range c.Args {
+		ctx.index = i
 		foreachArgImpl(arg, ctx, f)
 	}
 }

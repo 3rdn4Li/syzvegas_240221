@@ -35,6 +35,7 @@ type Derived struct {
 
 	Syscalls      []int
 	NoMutateCalls map[int]bool // Set of IDs of syscalls which should not be mutated.
+	DisabledCallArgs map[int][]int // Map of syscall IDs to lists of arguments that should not be mutated.
 	Timeouts      targets.Timeouts
 }
 
@@ -174,6 +175,10 @@ func Complete(cfg *Config) error {
 
 	var err error
 	cfg.Syscalls, err = ParseEnabledSyscalls(cfg.Target, cfg.EnabledSyscalls, cfg.DisabledSyscalls)
+	if err != nil {
+		return err
+	}
+	cfg.DisabledCallArgs,err = ParseDisabledSyscallArgs(cfg.Target, cfg.DisabledSyscallArgs)
 	if err != nil {
 		return err
 	}
@@ -360,6 +365,33 @@ func ParseNoMutateSyscalls(target *prog.Target, syscalls []string) (map[int]bool
 
 	return result, nil
 }
+
+func ParseDisabledSyscallArgs(target *prog.Target, DisabledSyscallArgs map[string][]int) (map[int][]int, error) {
+	result := make(map[int][]int)
+
+    // Iterate over each syscall name and its corresponding list of arguments to disable.
+    for syscallName, args := range DisabledSyscallArgs {
+        found := false 
+
+        // Iterate over the syscalls in the target to find matches.
+        for _, syscall := range target.Syscalls {
+            if MatchSyscall(syscall.Name, syscallName) {
+                // Map the syscall ID to the list of arguments that should be disabled.
+                result[syscall.ID] = args
+                found = true
+            }
+        }
+
+        // If no matching syscall is found, return an error with the name of the missing syscall.
+        if !found {
+            return nil, fmt.Errorf("unknown syscall to disable arg mutate: %s", syscallName)
+        }
+    }
+
+    // Return the result map and no error if all went well.
+    return result, nil
+}
+
 
 func MatchSyscall(name, pattern string) bool {
 	if pattern == name || strings.HasPrefix(name, pattern+"$") {

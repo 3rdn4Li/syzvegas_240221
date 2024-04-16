@@ -54,7 +54,7 @@ func TestMutateConditionalFields(t *testing.T) {
 	for i := 0; i < iters; i++ {
 		prog := genConditionalFieldProg(target, ct, r)
 		for j := 0; j < 5; j++ {
-			prog.Mutate(rs, 10, ct, nil, nil)
+			prog.Mutate(rs, 10, ct, nil,nil, nil)
 			hasAny := bytes.Contains(prog.Serialize(), []byte("ANY="))
 			if hasAny {
 				// No sense to verify these.

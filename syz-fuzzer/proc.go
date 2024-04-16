@@ -191,7 +191,7 @@ func (proc *Proc) DoMutate(count int) ExecResult {
 			p := _p.Clone()
 			p.ResetMAB()
 			proc.fuzzer.logProgram(p)
-			p.Mutate(proc.rnd, prog.RecommendedCalls, ct, proc.fuzzer.noMutate, fuzzerSnapshot.corpus)
+			p.Mutate(proc.rnd, prog.RecommendedCalls, ct, proc.fuzzer.noMutate, proc.fuzzer.disabledCallArgs, fuzzerSnapshot.corpus)
 			proc.fuzzer.logProgram(p)
 			_, r := proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatFuzz)
 			// proc.fuzzer.MABIncrementCorpusMutateCount(pidx, 1)
@@ -384,7 +384,7 @@ func (proc *Proc) loop() {
 			p.ResetMAB()
 			proc.fuzzer.writeLog("# %v Mutate\n", i)
 			proc.fuzzer.logProgram(p)
-			p.Mutate(proc.rnd, prog.RecommendedCalls, ct, proc.fuzzer.noMutate, fuzzerSnapshot.corpus)
+			p.Mutate(proc.rnd, prog.RecommendedCalls, ct, proc.fuzzer.noMutate, proc.fuzzer.disabledCallArgs, fuzzerSnapshot.corpus)
 			proc.fuzzer.logProgram(p)
 			_, r:=	proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatFuzz)
 			r.pidx = pidx
@@ -656,7 +656,7 @@ func (proc *Proc) smashInput(item *WorkSmash) ExecResult {
 		p.ResetMAB()
 		proc.fuzzer.writeLog("# %v Mutate Smash\n", i)
 		proc.fuzzer.logProgram(p)
-		p.Mutate(proc.rnd, prog.RecommendedCalls, proc.fuzzer.choiceTable, proc.fuzzer.noMutate, fuzzerSnapshot.corpus)
+		p.Mutate(proc.rnd, prog.RecommendedCalls, proc.fuzzer.choiceTable, proc.fuzzer.noMutate,proc.fuzzer.disabledCallArgs, fuzzerSnapshot.corpus)
 
 		proc.fuzzer.logProgram(p)
 		_, r:= proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatSmash)

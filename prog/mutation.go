@@ -24,7 +24,7 @@ const maxBlobLen = uint64(100 << 10)
 // ct:          ChoiceTable for syscalls.
 // noMutate:    Set of IDs of syscalls which should not be mutated.
 // corpus:      The entire corpus, including original program p.
-func (p *Prog) Mutate(rs rand.Source, ncalls int, ct *ChoiceTable, noMutate map[int]bool, corpus []*Prog) {
+func (p *Prog) Mutate(rs rand.Source, ncalls int, ct *ChoiceTable, noMutate map[int]bool, disabledCallArgs map[int][]int, corpus []*Prog) {
 	p.Source = 1
 	r := newRand(p.Target, rs)
 	if ncalls < len(p.Calls) {
@@ -37,6 +37,7 @@ func (p *Prog) Mutate(rs rand.Source, ncalls int, ct *ChoiceTable, noMutate map[
 		ct:       ct,
 		noMutate: noMutate,
 		corpus:   corpus,
+		disabledCallArgs: disabledCallArgs,
 	}
 	for stop, ok := false, false; !stop; stop = ok && len(p.Calls) != 0 && r.oneOf(3) {
 		switch {
@@ -70,6 +71,7 @@ type mutator struct {
 	ct       *ChoiceTable // ChoiceTable for syscalls.
 	noMutate map[int]bool // Set of IDs of syscalls which should not be mutated.
 	corpus   []*Prog      // The entire corpus, including original program p.
+	disabledCallArgs map[int][]int // The arguments that should not be mutated for each call.
 }
 
 // This function selects a random other program p0 out of the corpus, and
@@ -184,14 +186,20 @@ func (ctx *mutator) mutateArg() bool {
 	if ctx.noMutate[c.Meta.ID] {
 		return false
 	}
+	disabledArgs := ctx.disabledCallArgs[c.Meta.ID]
+	if len(disabledArgs) == len(c.Args) {
+		return false
+	}
 	updateSizes := true
 	for stop, ok := false, false; !stop; stop = ok && r.oneOf(3) {
 		ok = true
 		ma := &mutationArgs{target: p.Target}
+		ma.disabledArgs = disabledArgs
 		ForeachArg(c, ma.collectArg)
 		if len(ma.args) == 0 {
 			return false
 		}
+
 		s := analyze(ctx.ct, ctx.corpus, p, c)
 		arg, argCtx := ma.chooseArg(r.Rand)
 		calls, ok1 := p.Target.mutateArg(r, s, arg, argCtx, &updateSizes)
@@ -527,6 +535,7 @@ type mutationArgs struct {
 	prioSum       float64
 	args          []mutationArg
 	argsBuffer    [16]mutationArg
+	disabledArgs []int // The arguments that should not be mutated
 }
 
 type mutationArg struct {
@@ -552,6 +561,13 @@ func (ma *mutationArgs) collectArg(arg Arg, ctx *ArgCtx) {
 	if prio == dontMutate {
 		return
 	}
+	for _, v := range ma.disabledArgs {
+		if v == ctx.index {
+			ctx.Stop = true
+			return
+		}
+	}
+	
 
 	_, isArrayTyp := typ.(*ArrayType)
 	_, isBufferTyp := typ.(*BufferType)

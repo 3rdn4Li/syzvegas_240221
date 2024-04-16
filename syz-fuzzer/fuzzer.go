@@ -46,6 +46,7 @@ type Fuzzer struct {
 	needPoll    chan struct{}
 	choiceTable *prog.ChoiceTable
 	noMutate    map[int]bool
+	disabledCallArgs map[int][]int 
 	// The stats field cannot unfortunately be just an uint64 array, because it
 	// results in "unaligned 64-bit atomic operation" errors on 32-bit platforms.
 	stats             []uint64
@@ -450,6 +451,7 @@ func main() {
 		checkResult:              r.CheckResult,
 		fetchRawCover:            *flagRawCover,
 		noMutate:                 r.NoMutateCalls,
+		disabledCallArgs:         r.DisabledCallArgs,
 		stats:                    make([]uint64, StatCount),
 		// Queue no more than ~3 new inputs / proc.
 		parallelNewInputs: make(chan struct{}, int64(3**flagProcs)),
