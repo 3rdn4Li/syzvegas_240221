@@ -6,6 +6,7 @@ package prog
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/google/syzkaller/pkg/log"
 	"math"
 	"math/rand"
 	"sort"
@@ -25,6 +26,8 @@ const maxBlobLen = uint64(100 << 10)
 // noMutate:    Set of IDs of syscalls which should not be mutated.
 // corpus:      The entire corpus, including original program p.
 func (p *Prog) Mutate(rs rand.Source, ncalls int, ct *ChoiceTable, noMutate map[int]bool, disabledCallArgs map[int][]int, corpus []*Prog) {
+	log.Logf(0,"MUTATE")
+	fmt.Println("MUTATE")
 	p.Source = 1
 	r := newRand(p.Target, rs)
 	if ncalls < len(p.Calls) {
@@ -45,14 +48,19 @@ func (p *Prog) Mutate(rs rand.Source, ncalls int, ct *ChoiceTable, noMutate map[
 			// Not all calls have anything squashable,
 			// so this has lower priority in reality.
 			ok = ctx.squashAny()
+			fmt.Println("squashAny")
 		case r.nOutOf(1, 100):
 			ok = ctx.splice()
-		case r.nOutOf(20, 31):
-			ok = ctx.insertCall()
+			fmt.Println("splice")
+		// case r.nOutOf(20, 31):
+		// 	ok = ctx.insertCall()
+		// 	fmt.Println("insertcall")
 		case r.nOutOf(10, 11):
 			ok = ctx.mutateArg()
+			fmt.Println("mutateArg")
 		default:
 			ok = ctx.removeCall()
+			fmt.Println("removeCall")
 		}
 	}
 	p.sanitizeFix()
@@ -186,10 +194,12 @@ func (ctx *mutator) mutateArg() bool {
 	if ctx.noMutate[c.Meta.ID] {
 		return false
 	}
+	fmt.Println("Before checking disabled args")
 	disabledArgs := ctx.disabledCallArgs[c.Meta.ID]
 	if len(disabledArgs) == len(c.Args) {
 		return false
 	}
+	fmt.Println("After checking disabled args")
 	updateSizes := true
 	for stop, ok := false, false; !stop; stop = ok && r.oneOf(3) {
 		ok = true
@@ -202,6 +212,7 @@ func (ctx *mutator) mutateArg() bool {
 
 		s := analyze(ctx.ct, ctx.corpus, p, c)
 		arg, argCtx := ma.chooseArg(r.Rand)
+		fmt.Printf("arg:%v, argctx:%v \n",arg, argCtx)
 		calls, ok1 := p.Target.mutateArg(r, s, arg, argCtx, &updateSizes)
 		if !ok1 {
 			ok = false

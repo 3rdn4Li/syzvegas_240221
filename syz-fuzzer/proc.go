@@ -290,6 +290,8 @@ func (proc *Proc) MABLoop() {
 	pr_arr := []float64{pr_generate, _pr_mutate, _pr_triage} // Use real weight as pr. Consider cases where triage/mutation might be unavailable
 	proc.fuzzer.writeLog("- MAB Probability: [%v, %v, %v]\n", pr_arr[0], pr_arr[1], pr_arr[2])
 	// Choose
+	//disable gen
+	pr_generate = 0.0
 	rand_num := rand.Float64() * (pr_generate + _pr_mutate + _pr_triage)
 	choice := -1
 	if rand_num <= pr_generate {
@@ -317,25 +319,27 @@ func (proc *Proc) MABLoop() {
 }
 
 func (proc *Proc) loop() {
-	generatePeriod := 100
-	if proc.fuzzer.config.Flags&ipc.FlagSignal == 0 {
-		// If we don't have real coverage signal, generate programs more frequently
-		// because fallback signal is weak.
-		generatePeriod = 2
-	}
+	//disable gen
+	// generatePeriod := 100
+	// if proc.fuzzer.config.Flags&ipc.FlagSignal == 0 {
+	// 	// If we don't have real coverage signal, generate programs more frequently
+	// 	// because fallback signal is weak.
+	// 	generatePeriod = 2
+	// }
 	for i := 0; ; i++ {
-		if proc.fuzzer.MABRound <= proc.fuzzer.fuzzerConfig.MABGenerateFirst {
-			// Force Generate First
-			ct := proc.fuzzer.choiceTable
-			ts0 := time.Now().UnixNano()
-			p := proc.fuzzer.target.Generate(proc.rnd, prog.RecommendedCalls, ct)
-			proc.fuzzer.writeLog("# %v Generate\n", i)
-			proc.fuzzer.logProgram(p)
-			_, r:=	proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatGenerate)
-			r.timeTotal = float64(time.Now().UnixNano()-ts0) / proc.fuzzer.fuzzerConfig.MABTimeUnit
-			proc.fuzzer.writeLog("- Work Type: 0, Result: %+v\n", r)
-			continue
-		}
+		// disable gen
+		// if proc.fuzzer.MABRound <= proc.fuzzer.fuzzerConfig.MABGenerateFirst {
+		// 	// Force Generate First
+		// 	ct := proc.fuzzer.choiceTable
+		// 	ts0 := time.Now().UnixNano()
+		// 	p := proc.fuzzer.target.Generate(proc.rnd, prog.RecommendedCalls, ct)
+		// 	proc.fuzzer.writeLog("# %v Generate\n", i)
+		// 	proc.fuzzer.logProgram(p)
+		// 	_, r:=	proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatGenerate)
+		// 	r.timeTotal = float64(time.Now().UnixNano()-ts0) / proc.fuzzer.fuzzerConfig.MABTimeUnit
+		// 	proc.fuzzer.writeLog("- Work Type: 0, Result: %+v\n", r)
+		// 	continue
+		// }
 		if proc.fuzzer.fuzzerConfig.MABAlgorithm != "N/A" {
 			proc.DoCandidate() // Deal with candidates first
 			if proc.fuzzer.fuzzerConfig.MABDuration <= 0 || proc.fuzzer.MABRound < proc.fuzzer.fuzzerConfig.MABDuration {
@@ -366,17 +370,18 @@ func (proc *Proc) loop() {
 
 		ct := proc.fuzzer.choiceTable
 		fuzzerSnapshot := proc.fuzzer.snapshot()
-		if len(fuzzerSnapshot.corpus) == 0 || i%generatePeriod == 0 || proc.fuzzer.MABRound < proc.fuzzer.fuzzerConfig.MABNoMutations {
-			ts0 := time.Now().UnixNano()
-			// Generate a new prog.
-			p := proc.fuzzer.target.Generate(proc.rnd, prog.RecommendedCalls, ct)
-			proc.fuzzer.writeLog("# %v Generate\n", i)
-			proc.fuzzer.logProgram(p)
-			_, r:=	proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatGenerate)//probably it's better to also collide
-			// r := proc.execute(proc.execOpts, p, ProgNormal, StatGenerate)
-			r.timeTotal = float64(time.Now().UnixNano()-ts0) / proc.fuzzer.fuzzerConfig.MABTimeUnit
-			proc.fuzzer.writeLog("- Work Type: 0, Result: %+v\n", r)
-		} else {
+		// diasble gen
+		// if len(fuzzerSnapshot.corpus) == 0 || i%generatePeriod == 0 || proc.fuzzer.MABRound < proc.fuzzer.fuzzerConfig.MABNoMutations {
+		// 	ts0 := time.Now().UnixNano()
+		// 	// Generate a new prog.
+		// 	p := proc.fuzzer.target.Generate(proc.rnd, prog.RecommendedCalls, ct)
+		// 	proc.fuzzer.writeLog("# %v Generate\n", i)
+		// 	proc.fuzzer.logProgram(p)
+		// 	_, r:=	proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatGenerate)//probably it's better to also collide
+		// 	// r := proc.execute(proc.execOpts, p, ProgNormal, StatGenerate)
+		// 	r.timeTotal = float64(time.Now().UnixNano()-ts0) / proc.fuzzer.fuzzerConfig.MABTimeUnit
+		// 	proc.fuzzer.writeLog("- Work Type: 0, Result: %+v\n", r)
+		// } else {
 			// Mutate an existing prog.
 			ts0 := time.Now().UnixNano()
 			pidx, p := fuzzerSnapshot.chooseProgram(proc.rnd)
@@ -393,7 +398,7 @@ func (proc *Proc) loop() {
 				proc.fuzzer.MABUpdateWeight(1, r, []float64{1.0, 1.0, 1.0}, 1.0)
 			}
 			proc.fuzzer.writeLog("- Work Type: 1, Result: %+v\n", r)
-		}
+		//}
 	}
 }
 
@@ -657,6 +662,7 @@ func (proc *Proc) smashInput(item *WorkSmash) ExecResult {
 		proc.fuzzer.writeLog("# %v Mutate Smash\n", i)
 		proc.fuzzer.logProgram(p)
 		p.Mutate(proc.rnd, prog.RecommendedCalls, proc.fuzzer.choiceTable, proc.fuzzer.noMutate,proc.fuzzer.disabledCallArgs, fuzzerSnapshot.corpus)
+		fmt.Println("Mutated")
 
 		proc.fuzzer.logProgram(p)
 		_, r:= proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatSmash)
